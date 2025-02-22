@@ -1,0 +1,6 @@
+python-telegram-bot==20.7
+python-dotenv==1.0.1
+yfinance==0.2.54
+requests==2.31.0
+Flask==3.0.2
+replicate==0.24.0
