@@ -10,6 +10,7 @@ def home():
     return "Ticker Bot is running!"
 
 def main():
+    print("Bot is running!")
     telegram_service.setup()
     telegram_service.run()
 

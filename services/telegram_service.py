@@ -11,20 +11,30 @@ class TelegramService:
 
     async def start_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text(
-            "Welcome to Ticker Bot! Use /ticker SYMBOL to get financial insights."
+            text="Welcome to Ticker Bot\! Use */ticker SYMBOL* to get financial insights",
+            parse_mode="MarkdownV2"
         )
 
     async def ticker_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         if not context.args:
-            await update.message.reply_text("Please provide a ticker symbol!")
+            await update.message.reply_text(
+                text="Please provide a ticker symbol\! E\.g\. */ticker AAPL*",
+                parse_mode="MarkdownV2"
+            )
             return
 
         ticker_symbol = context.args[0].upper()
-        await update.message.reply_text(f"Analyzing {ticker_symbol}...")
+        await update.message.reply_text(
+            text=f"Analyzing {ticker_symbol}\.\.\.",
+            parse_mode="MarkdownV2"
+        )
 
         stock_data = self.yahoo_service.get_stock_data(ticker_symbol)
         insights = self.replicate_service.get_financial_insight(stock_data)
-        await update.message.reply_text(insights)
+        await update.message.reply_text(
+            text=insights,
+            parse_mode="HTML"
+        )
 
     def setup(self):
         self.application.add_handler(
