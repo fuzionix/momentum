@@ -1,5 +1,5 @@
-from telegram import Update
-from telegram.ext import Application, CommandHandler, ContextTypes
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.ext import Application, CommandHandler, CallbackQueryHandler, ContextTypes
 from services.yahoo_service import YahooFinanceService
 from services.replicate_service import ReplicateService
 from services.validation_service import ValidationService
@@ -12,7 +12,40 @@ class TelegramService:
         self.validation = ValidationService()
 
     async def start_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        await update.message.reply_text("Welcome to Momentum! Please use /ticker SYMBOL to get financial insights")
+        keyboard = [
+            [InlineKeyboardButton("🎯 Analyze Stock", callback_data="analyze_stock")]
+            [InlineKeyboardButton("⚫ About Momentum", callback_data="about_bot")],
+        ]
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        await update.message.reply_text(
+            text="I deliver comprehensive financial analysis powered by AI reasoning model.",
+            reply_markup=reply_markup
+        )
+
+    async def button_callback(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        query = update.callback_query
+        await query.answer()
+        
+        if query.data == "about_bot":
+            about_text = (
+                "Momentum Financial Bot\n\n"
+                "Momentum provides professional financial insights powered by latest reasoning model.\n\n"
+                "Features:\n"
+                "• Real-time data from Yahoo Finance\n"
+                "• Technical analysis indicators\n"
+                "• AI-generated insights and recommendations\n"
+                "• Risk assessments and key metrics\n\n"
+            )
+            
+            await query.message.reply_text(
+                text=about_text,
+                parse_mode="HTML",
+            )
+            
+        elif query.data == "analyze_stock":
+            await query.message.reply_text(
+                text="Please use /ticker with stock ticker symbol (e.g., /ticker AAPL)",
+            )
 
     async def ticker_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         if not context.args:
@@ -60,6 +93,8 @@ class TelegramService:
             CommandHandler("start", self.start_command))
         self.application.add_handler(
             CommandHandler("ticker", self.ticker_command))
+        self.application.add_handler(
+            CallbackQueryHandler(self.button_callback))
 
     def run(self):
         self.application.run_polling()
