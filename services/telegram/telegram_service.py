@@ -1,8 +1,8 @@
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CommandHandler, CallbackQueryHandler, ContextTypes
-from services.yahoo_service import YahooFinanceService
-from services.replicate_service import ReplicateService
-from services.validation_service import ValidationService
+from services.data.yahoo_service import YahooFinanceService
+from services.llm.replicate_service import ReplicateService
+from services.utils.validation_service import ValidationService
 
 class TelegramService:
     def __init__(self, token: str):

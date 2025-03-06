@@ -1,48 +1,10 @@
-import replicate
-import os
+from services.llm.prompts.prompt_base import BasePrompt
+from services.utils.formatters import format_large_number
 
-class ReplicateService:
-    def __init__(self):
-        self.client = replicate.Client(api_token=os.getenv('REPLICATE_API_TOKEN'))
+class StockAnalysisPrompt(BasePrompt):
+    """Prompt generator for stock analysis"""
 
-    def get_financial_insight(self, stock_data: dict) -> str:
-        try:
-            # Format the input data for the model
-            input_data = self.format_data(stock_data)
-
-            output_stream = self.client.run(
-                "meta/meta-llama-3-70b-instruct",
-                input={
-                    "prompt": input_data,
-                    "temperature": 0.75,
-                    "max_length": 2048,
-                    "top_p": 0.9
-                }
-            )
-
-            # Combine all outputs from the stream
-            full_output = ""
-            for item in output_stream:
-                full_output += item
-            return full_output
-        except Exception as e:
-            return f"Error generating insight: {str(e)}"
-        
-    def format_data(self, stock_data: dict) -> str:
-        """Format stock data into a prompt for the LLM to analyze."""
-        if 'error' in stock_data:
-            return f"Error retrieving stock data: {stock_data['error']}"
-        
-        # Extract and format data
-        formatted_data = self.extract_and_format_data(stock_data)
-        
-        # Build prompt with formatted data
-        prompt = self.build_analysis_prompt(formatted_data)
-        
-        return prompt
-    
-    def extract_and_format_data(self, stock_data: dict) -> dict:
-        """Extract and format the stock data into a structured dictionary."""
+    def format_data(stock_data: dict) -> dict:
         # Extract basic information
         info = stock_data.get('info', {})
 
@@ -61,7 +23,7 @@ class ReplicateService:
         financial_metrics = []
         metrics_to_check = [
             ('currentPrice', 'Current Price', lambda x: f"${x:.2f}"),
-            ('marketCap', 'Market Cap', lambda x: self.format_large_number(x)),
+            ('marketCap', 'Market Cap', lambda x: format_large_number(x)),
             ('trailingPE', 'P/E Ratio', lambda x: f"{x:.2f}"),
             ('forwardPE', 'Forward P/E', lambda x: f"{x:.2f}"),
             ('trailingEps', 'EPS (TTM)', lambda x: f"${x:.2f}"),
@@ -167,8 +129,7 @@ class ReplicateService:
             'percent_change': percent_change
         }
     
-    def build_analysis_prompt(self, formatted_data: dict) -> str:
-        """Build the LLM prompt from formatted data."""
+    def build_prompt(formatted_data: dict) -> str:
         company = formatted_data['company']
         financial_metrics = formatted_data['financial_metrics']
         price_history = formatted_data['price_history']
@@ -254,18 +215,3 @@ While fundamentals are solid, high valuation and debt levels create vulnerabilit
 Keep your response concise and focused on the most important insights. If certain data points are missing, acknowledge the limitations of your analysis.
         """
         return prompt
-    
-    def format_large_number(self, number):
-        """Format large numbers into a readable format with B, M suffixes."""
-        if number is None:
-            return "Unknown"
-        
-        try:
-            if number >= 1_000_000_000:
-                return f"${number / 1_000_000_000:.2f}B"
-            elif number >= 1_000_000:
-                return f"${number / 1_000_000:.2f}M"
-            else:
-                return f"${number:,.2f}"
-        except (TypeError, ValueError):
-            return f"${number}"

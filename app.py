@@ -1,5 +1,5 @@
 from flask import Flask
-from services.telegram_service import TelegramService
+from services.telegram.telegram_service import TelegramService
 from config.config import TELEGRAM_TOKEN
 
 app = Flask(__name__)
