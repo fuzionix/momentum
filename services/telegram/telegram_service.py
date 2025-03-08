@@ -2,14 +2,14 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CommandHandler, CallbackQueryHandler, ContextTypes
 from services.data.yahoo_service import YahooFinanceService
 from services.llm.replicate_service import ReplicateService
-from services.utils.validation_service import ValidationService
+from services.utils.validation import Validation
 
 class TelegramService:
     def __init__(self, token: str):
         self.application = Application.builder().token(token).build()
         self.yahoo_service = YahooFinanceService()
         self.replicate_service = ReplicateService()
-        self.validation = ValidationService()
+        self.validation = Validation()
 
     async def start_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         keyboard = [
@@ -31,7 +31,7 @@ class TelegramService:
                 "Momentum Financial Bot\n\n"
                 "Momentum provides professional financial insights powered by latest reasoning model.\n\n"
                 "Features:\n"
-                "• Real-time data from Yahoo Finance\n"
+                "• Real-time data\n"
                 "• Technical analysis indicators\n"
                 "• AI-generated insights and recommendations\n"
                 "• Risk assessments and key metrics\n\n"

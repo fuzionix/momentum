@@ -1,7 +1,7 @@
 import re
 from typing import Tuple
 
-class ValidationService:
+class Validation:
     # Characters that need to be escaped in MarkdownV2 format
     SPECIAL_CHARS = ['_', '*', '[', ']', '(', ')', '~', '`', '>', '#', '+', 
                      '-', '=', '|', '{', '}', '.', '!']
@@ -32,7 +32,7 @@ class ValidationService:
         Escape special characters for MarkdownV2 format in Telegram
         """
         escaped_text = text
-        for char in ValidationService.SPECIAL_CHARS:
+        for char in Validation.SPECIAL_CHARS:
             escaped_text = escaped_text.replace(char, f"\\{char}")
         return escaped_text
     
@@ -42,6 +42,6 @@ class ValidationService:
         Format message for Telegram based on parse mode
         """
         if parse_mode.lower() == "markdownv2":
-            return ValidationService.escape_markdown(message)
+            return Validation.escape_markdown(message)
         # For HTML or other modes, no escaping needed
         return message
