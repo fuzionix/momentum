@@ -1,5 +1,6 @@
 from services.llm.prompts.prompt_base import BasePrompt
 from services.utils.formatters import format_large_number
+from datetime import datetime
 
 class StockAnalysisPrompt(BasePrompt):
     """Prompt generator for stock analysis"""
@@ -111,6 +112,40 @@ class StockAnalysisPrompt(BasePrompt):
 
         # Extract financial health indicators
         financial_health = []
+
+        # Extract and format news
+        news_items = []
+        news_data = stock_data.get('news', [])
+        if news_data and isinstance(news_data, list):
+            recent_news = news_data[:5]
+            for item in recent_news:
+                if isinstance(item, dict):
+                    content = item.get('content', {})
+                    if isinstance(content, dict):
+                        title = content.get('title', 'No title')
+                    
+                    pub_date = ''
+                    if 'content' in item and isinstance(item['content'], dict):
+                        pub_date = item['content'].get('pubDate', '')
+                        
+                    if pub_date:
+                        try:
+                            date_obj = datetime.strptime(pub_date, '%Y-%m-%dT%H:%M:%SZ')
+                            formatted_date = date_obj.strftime('%b %d, %Y')
+                            news_items.append(f"- {title} ({formatted_date})")
+                        except Exception:
+                            news_items.append(f"- {title}")
+                    else:
+                        news_items.append(f"- {title}")
+                    
+                    summary = ''
+                    if 'content' in item and isinstance(item['content'], dict):
+                        summary = item['content'].get('summary', '')
+                        
+                    if summary and len(summary) > 20:
+                        if len(summary) > 200:
+                            summary = summary[:197] + '...'
+                        news_items.append(f"  Summary: {summary}")
         
         # Return formatted data as a dictionary
         return {
@@ -126,7 +161,8 @@ class StockAnalysisPrompt(BasePrompt):
             'technical_analysis': tech_analysis,
             'financial_health': financial_health,
             'price_change': price_change,
-            'percent_change': percent_change
+            'percent_change': percent_change,
+            'news': news_items
         }
     
     def build_prompt(formatted_data: dict) -> str:
@@ -135,11 +171,13 @@ class StockAnalysisPrompt(BasePrompt):
         price_history = formatted_data['price_history']
         tech_analysis = formatted_data['technical_analysis']
         financial_health = formatted_data['financial_health']
+        news = formatted_data.get('news', [])
         
         financial_summary = "\n".join(financial_metrics) if financial_metrics else "Financial data not available"
         price_history_text = "\n".join(price_history)
         technical_analysis_section = "\n".join(tech_analysis) if tech_analysis else "Technical indicators not available"
         financial_health_section = "\n".join(financial_health) if financial_health else "Financial health data not available"
+        news_section = "\n".join(news) if news else "No recent news available"
 
         # Create the prompt
         prompt = f"""
@@ -164,6 +202,9 @@ TECHNICAL ANALYSIS:
 FINANCIAL HEALTH:
 {financial_health_section}
 
+RECENT NEWS:
+{news_section}
+
 Based on this information, provide a financial analysis using the following structure:
 [Ticker] | [Price Change] [🔺(Increase)/🔻(Decrease)]
 
@@ -176,6 +217,9 @@ Based on this information, provide a financial analysis using the following stru
 ✅ [Positive signal with brief explanation]
 ❎ [Negative signal with brief explanation]
 [etc.]
+
+<b>News Impact</b>
+[Brief analysis of how recent news might impact the stock price or company outlook]
 
 <b>Key Metrics to Watch</b>
 [List 2-3 key metrics that could impact this stock]
@@ -201,13 +245,15 @@ ACME Inc. currently trades at $152.33 with a market cap of $2.3B, showing a rece
 ❎ High debt-to-equity ratio (1.8) indicates significant leverage
 ❎ Forward P/E of 25.3 suggests premium valuation compared to peers
 
-<b>Recommendation: Buy 🟢</b>
-Strong fundamentals and positive momentum outweigh valuation concerns, making this a compelling entry point for investors with medium to long-term horizons.
+<b>News Impact</b>
 
 <b>Key Metrics to Watch</b>
 - Q2 earnings report (expected June 15)
 - New product launch impact on revenue growth
 - Industry regulatory changes
+
+<b>Recommendation: Buy 🟢</b>
+Strong fundamentals and positive momentum outweigh valuation concerns, making this a compelling entry point for investors with medium to long-term horizons.
 
 <b>Risk Level: Medium 🟠</b>
 While fundamentals are solid, high valuation and debt levels create vulnerability to market downturns or interest rate changes.

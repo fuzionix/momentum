@@ -13,8 +13,8 @@ class TelegramService:
 
     async def start_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         keyboard = [
-            [InlineKeyboardButton("🎯 Analyze Stock", callback_data="analyze_stock")]
-            [InlineKeyboardButton("⚫ About Momentum", callback_data="about_bot")],
+            [InlineKeyboardButton("🎯 Analyze Stock", callback_data="analyze_stock")],
+            [InlineKeyboardButton("⚫ About Momentum", callback_data="about_bot")]
         ]
         reply_markup = InlineKeyboardMarkup(keyboard)
         await update.message.reply_text(
