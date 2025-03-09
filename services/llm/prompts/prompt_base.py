@@ -1,6 +1,5 @@
 from abc import ABC, abstractmethod
 from typing import Dict, Any
-from services.utils.formatters import format_large_number
 
 class BasePrompt(ABC):
     """Base class for prompt generators."""

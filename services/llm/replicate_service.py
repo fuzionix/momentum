@@ -6,33 +6,43 @@ class ReplicateService:
     def __init__(self):
         self.client = replicate.Client(api_token=os.getenv('REPLICATE_API_TOKEN'))
 
-    def get_financial_insight(self, stock_data: dict) -> str:
+    def get_financial_insight(self, stock_data: dict) -> tuple[str, str]:
         try:
             # Format the input data for the model
             input_data = self.format_input(stock_data)
 
-            output_stream = self.client.run(
-                "meta/meta-llama-3-70b-instruct",
+            prediction = self.client.predictions.create(
+                'meta/meta-llama-3-70b-instruct',
                 input={
-                    "prompt": input_data,
-                    "temperature": 0.75,
-                    "max_length": 2048,
-                    "top_p": 0.9
+                    'prompt': input_data,
+                    'temperature': 0.75,
+                    'max_length': 2048,
+                    'top_p': 0.9
                 }
             )
 
-            # Combine all outputs from the stream
-            full_output = ""
-            for item in output_stream:
-                full_output += item
-            return full_output
+            prediction.wait()
+
+            if prediction.status == 'failed':
+                return f'Error generating insight: {prediction.error}', 'error_id'
+            
+            prediction_id = prediction.id
+            output = prediction.output
+
+            # For streaming output, combine all output
+            if isinstance(output, list):
+                full_output = ''.join(output)
+            else:
+                full_output = str(output)
+
+            return full_output, prediction_id
         except Exception as e:
-            return f"Error generating insight: {str(e)}"
+            return f'Error generating insight: {str(e)}'
         
     def format_input(self, stock_data: dict) -> str:
-        """Format stock data into a prompt for the LLM to analyze."""
+        '''Format stock data into a prompt for the LLM to analyze.'''
         if 'error' in stock_data:
-            return f"Error retrieving stock data: {stock_data['error']}"
+            return f'Error retrieving stock data: {stock_data["error"]}'
         
         # Extract and format data
         formatted_data = StockAnalysisPrompt.format_data(stock_data)

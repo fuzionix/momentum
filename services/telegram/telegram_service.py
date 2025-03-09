@@ -1,17 +1,28 @@
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CommandHandler, CallbackQueryHandler, ContextTypes
+from utils.validation import Validation
+from services.database.db_service import DatabaseService
 from services.data.yahoo_service import YahooFinanceService
 from services.llm.replicate_service import ReplicateService
-from services.utils.validation import Validation
 
 class TelegramService:
-    def __init__(self, token: str):
+    def __init__(self, token: str, db_service: DatabaseService):
         self.application = Application.builder().token(token).build()
         self.yahoo_service = YahooFinanceService()
         self.replicate_service = ReplicateService()
         self.validation = Validation()
+        self.db_service = db_service
 
     async def start_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        user = update.effective_user
+        self.db_service.get_or_create_user(
+            telegram_id=user.id,
+            username=user.username,
+            first_name=user.first_name,
+            last_name=user.last_name,
+            language=user.language_code
+        )
+
         keyboard = [
             [InlineKeyboardButton("🎯 Analyze Stock", callback_data="analyze_stock")],
             [InlineKeyboardButton("⚫ About Momentum", callback_data="about_bot")]
@@ -48,6 +59,15 @@ class TelegramService:
             )
 
     async def ticker_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        user = update.effective_user
+        db_user = self.db_service.get_or_create_user(
+            telegram_id=user.id,
+            username=user.username,
+            first_name=user.first_name,
+            last_name=user.last_name,
+            language=user.language_code
+        )
+
         if not context.args:
             message = self.validation.format_telegram_message(
                 "Please provide a ticker symbol! Example: /ticker AAPL"
@@ -82,7 +102,14 @@ class TelegramService:
 
         stock_data = self.yahoo_service.get_stock_data(ticker_symbol)
 
-        insights = self.replicate_service.get_financial_insight(stock_data)
+        insights, replicate_id = self.replicate_service.get_financial_insight(stock_data)
+
+        self.db_service.log_analysis(
+            user_id=db_user['id'],
+            ticker_symbol=ticker_symbol,
+            replicate_id=replicate_id
+        )
+
         await update.message.reply_text(
             text=insights,
             parse_mode="HTML"

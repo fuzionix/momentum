@@ -1,9 +1,15 @@
 from flask import Flask
-from services.telegram.telegram_service import TelegramService
 from config.config import TELEGRAM_TOKEN
+from utils.db_init import initialize_database
+from services.database.db_service import DatabaseService
+from services.telegram.telegram_service import TelegramService
 
 app = Flask(__name__)
-telegram_service = TelegramService(TELEGRAM_TOKEN)
+
+initialize_database()
+
+db_service = DatabaseService()
+telegram_service = TelegramService(TELEGRAM_TOKEN, db_service)
 
 @app.route('/')
 def home():
@@ -15,4 +21,7 @@ def main():
     telegram_service.run()
 
 if __name__ == '__main__':
-    main()
+    try:
+        main()
+    finally:
+        db_service.close()

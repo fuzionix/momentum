@@ -1,6 +1,6 @@
-from services.llm.prompts.prompt_base import BasePrompt
-from services.utils.formatters import format_large_number
 from datetime import datetime
+from utils.formatters import format_large_number
+from services.llm.prompts.prompt_base import BasePrompt
 
 class StockAnalysisPrompt(BasePrompt):
     """Prompt generator for stock analysis"""
@@ -56,10 +56,10 @@ class StockAnalysisPrompt(BasePrompt):
             if isinstance(history, dict) and 'Close' in history:
                 close_data = history['Close']
                 if isinstance(close_data, dict) and close_data:
-                    prices = list(close_data.values())[-7:]
+                    prices = list(close_data.values())[-30:]
                     
                     if prices:
-                        price_history_section = [f"- Recent Prices: {', '.join([f'${float(p):.2f}' for p in prices])}"]
+                        price_history_section = [f"- Recent Prices(30 Days): {', '.join([f'${float(p):.2f}' for p in prices])}"]
                         
                         # Calculate price change
                         price_change = float(prices[-1]) - float(prices[0])
@@ -70,7 +70,7 @@ class StockAnalysisPrompt(BasePrompt):
                         if 'Volume' in history:
                             volume_data = history['Volume']
                             if isinstance(volume_data, dict) and volume_data:
-                                avg_volume = sum(list(volume_data.values())[-7:]) / 7
+                                avg_volume = sum(list(volume_data.values())[-30:]) / 30
                                 price_history_section.append(f"- Avg Daily Volume: {int(avg_volume):,}")
         except Exception:
             price_history_section.append("- Note: Error processing price history data")
@@ -218,11 +218,10 @@ Based on this information, provide a financial analysis using the following stru
 ❎ [Negative signal with brief explanation]
 [etc.]
 
-<b>News Impact</b>
-[Brief analysis of how recent news might impact the stock price or company outlook]
-
-<b>Key Metrics to Watch</b>
-[List 2-3 key metrics that could impact this stock]
+<b>Market Insights</b>
+[Think deeply and provide precise insights on recent market trends with related news and other relevant factors in 2 paragraphs]
+[Paragraph 1 - Market trend analysis]
+[Paragraph 2 - News impact and market outlook]
 
 <b>Recommendation: [Buy/Sell/Neutral] [🟢/🔴/🟡]</b>
 [1-2 sentences explaining the final recommendation]
@@ -245,12 +244,7 @@ ACME Inc. currently trades at $152.33 with a market cap of $2.3B, showing a rece
 ❎ High debt-to-equity ratio (1.8) indicates significant leverage
 ❎ Forward P/E of 25.3 suggests premium valuation compared to peers
 
-<b>News Impact</b>
-
-<b>Key Metrics to Watch</b>
-- Q2 earnings report (expected June 15)
-- New product launch impact on revenue growth
-- Industry regulatory changes
+<b>Market Insights</b>
 
 <b>Recommendation: Buy 🟢</b>
 Strong fundamentals and positive momentum outweigh valuation concerns, making this a compelling entry point for investors with medium to long-term horizons.
