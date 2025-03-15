@@ -118,7 +118,7 @@ class TelegramService:
         message = self.validation.format_telegram_message(
             f'Analyzing {ticker_symbol}'
         )
-        await update.message.reply_text(
+        loading_message = await update.message.reply_text(
             text=message,
             parse_mode='MarkdownV2'
         )
@@ -131,6 +131,8 @@ class TelegramService:
             ticker_symbol=ticker_symbol,
             replicate_id=replicate_id
         )
+
+        await loading_message.delete()
 
         keyboard = [
             [InlineKeyboardButton('🏠 Home Page', callback_data='go_home')],
