@@ -37,7 +37,7 @@ class YahooFinanceService:
         
     @staticmethod
     def calculate_technical_indicators(hist_df):
-        """Calculate technical indicators from historical price data"""
+        '''Calculate technical indicators from historical price data'''
         if hist_df.empty:
             return {}
         
@@ -87,5 +87,5 @@ class YahooFinanceService:
             return df[['SMA_50', 'SMA_200', 'MACD', 'MACD_Signal', 'RSI', 'BB_Upper', 'BB_Middle', 'BB_Lower', 'ATR', 'OBV', 'ROC_10']].tail(30).to_dict()
             
         except Exception as e:
-            print(f"Error calculating technical indicators: {e}")
+            print(f'Error calculating technical indicators: {e}')
             return {}

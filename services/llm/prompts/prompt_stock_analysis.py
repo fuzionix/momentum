@@ -3,7 +3,7 @@ from utils.formatters import format_large_number
 from services.llm.prompts.prompt_base import BasePrompt
 
 class StockAnalysisPrompt(BasePrompt):
-    """Prompt generator for stock analysis"""
+    '''Prompt generator for stock analysis'''
 
     def format_data(stock_data: dict) -> dict:
         # Extract basic information
@@ -23,31 +23,31 @@ class StockAnalysisPrompt(BasePrompt):
         # Create a summary of available financial metrics
         financial_metrics = []
         metrics_to_check = [
-            ('currentPrice', 'Current Price', lambda x: f"${x:.2f}"),
+            ('currentPrice', 'Current Price', lambda x: f'${x:.2f}'),
             ('marketCap', 'Market Cap', lambda x: format_large_number(x)),
-            ('trailingPE', 'P/E Ratio', lambda x: f"{x:.2f}"),
-            ('forwardPE', 'Forward P/E', lambda x: f"{x:.2f}"),
-            ('trailingEps', 'EPS (TTM)', lambda x: f"${x:.2f}"),
-            ('dividendYield', 'Dividend Yield', lambda x: f"{x*100:.2f}%"),
-            ('revenueGrowth', 'Revenue Growth', lambda x: f"{x*100:.2f}%"),
-            ('profitMargins', 'Profit Margin', lambda x: f"{x*100:.2f}%"),
-            ('operatingMargins', 'Operating Margin', lambda x: f"{x*100:.2f}%"),
-            ('returnOnEquity', 'Return on Equity', lambda x: f"{x*100:.2f}%"),
-            ('debtToEquity', 'Debt to Equity', lambda x: f"{x:.2f}"),
-            ('quickRatio', 'Quick Ratio', lambda x: f"{x:.2f}"),
-            ('targetMeanPrice', 'Target Price', lambda x: f"${x:.2f}"),
+            ('trailingPE', 'P/E Ratio', lambda x: f'{x:.2f}'),
+            ('forwardPE', 'Forward P/E', lambda x: f'{x:.2f}'),
+            ('trailingEps', 'EPS (TTM)', lambda x: f'${x:.2f}'),
+            ('dividendYield', 'Dividend Yield', lambda x: f'{x*100:.2f}%'),
+            ('revenueGrowth', 'Revenue Growth', lambda x: f'{x*100:.2f}%'),
+            ('profitMargins', 'Profit Margin', lambda x: f'{x*100:.2f}%'),
+            ('operatingMargins', 'Operating Margin', lambda x: f'{x*100:.2f}%'),
+            ('returnOnEquity', 'Return on Equity', lambda x: f'{x*100:.2f}%'),
+            ('debtToEquity', 'Debt to Equity', lambda x: f'{x:.2f}'),
+            ('quickRatio', 'Quick Ratio', lambda x: f'{x:.2f}'),
+            ('targetMeanPrice', 'Target Price', lambda x: f'${x:.2f}'),
         ]
 
         for key, label, formatter in metrics_to_check:
             if key in info and info[key] is not None:
                 try:
                     formatted_value = formatter(info[key])
-                    financial_metrics.append(f"- {label}: {formatted_value}")
+                    financial_metrics.append(f'- {label}: {formatted_value}')
                 except (TypeError, ValueError):
-                    financial_metrics.append(f"- {label}: {info[key]}")
+                    financial_metrics.append(f'- {label}: {info[key]}')
 
         # Extract price history
-        price_history_section = ["- Recent Prices: No data available"]
+        price_history_section = ['- Recent Prices: No data available']
         price_change = None
         percent_change = None
         
@@ -64,16 +64,16 @@ class StockAnalysisPrompt(BasePrompt):
                         # Calculate price change
                         price_change = float(prices[-1]) - float(prices[0])
                         percent_change = (price_change / float(prices[0])) * 100
-                        price_history_section.append(f"- Price Change: ${price_change:.2f} ({percent_change:.2f}%)")
+                        price_history_section.append(f'- Price Change: ${price_change:.2f} ({percent_change:.2f}%)')
                         
                         # Add trading volume if available
                         if 'Volume' in history:
                             volume_data = history['Volume']
                             if isinstance(volume_data, dict) and volume_data:
                                 avg_volume = sum(list(volume_data.values())[-30:]) / 30
-                                price_history_section.append(f"- Avg Daily Volume: {int(avg_volume):,}")
+                                price_history_section.append(f'- Avg Daily Volume: {int(avg_volume):,}')
         except Exception:
-            price_history_section.append("- Note: Error processing price history data")
+            price_history_section.append('- Note: Error processing price history data')
 
         # Extract technical indicators
         technical_indicators = stock_data.get('technical_indicators', {})
@@ -91,24 +91,24 @@ class StockAnalysisPrompt(BasePrompt):
                 # Add formatted technical indicators
                 if 'RSI' in latest:
                     rsi_value = latest['RSI']
-                    tech_analysis.append(f"- RSI (14): {rsi_value:.2f}")
+                    tech_analysis.append(f'- RSI (14): {rsi_value:.2f}')
                     
                 if 'SMA_50' in latest and 'SMA_200' in latest and latest['SMA_50'] and latest['SMA_200']:
                     sma_50 = latest['SMA_50']
                     sma_200 = latest['SMA_200']
                     golden_cross = sma_50 > sma_200
-                    tech_analysis.append(f"- 50-day SMA: ${sma_50:.2f}")
-                    tech_analysis.append(f"- 200-day SMA: ${sma_200:.2f}")
-                    tech_analysis.append(f"- MA Signal: {'Bullish (Golden Cross)' if golden_cross else 'Bearish (Death Cross)'}")
+                    tech_analysis.append(f'- 50-day SMA: ${sma_50:.2f}')
+                    tech_analysis.append(f'- 200-day SMA: ${sma_200:.2f}')
+                    tech_analysis.append(f'- MA Signal: {"Bullish (Golden Cross)" if golden_cross else "Bearish (Death Cross)"}')
                     
                 if 'MACD' in latest and 'MACD_Signal' in latest:
                     macd = latest['MACD']
                     macd_signal = latest['MACD_Signal']
                     macd_hist = macd - macd_signal if macd and macd_signal else None
                     if macd_hist is not None:
-                        tech_analysis.append(f"- MACD Histogram: {macd_hist:.3f} ({'Bullish' if macd_hist > 0 else 'Bearish'})")
+                        tech_analysis.append(f'- MACD Histogram: {macd_hist:.3f} ({"Bullish" if macd_hist > 0 else "Bearish"})')
             except Exception as e:
-                tech_analysis.append(f"- Technical analysis error: {str(e)}")
+                tech_analysis.append(f'- Technical analysis error: {str(e)}')
 
         # Extract financial health indicators
         financial_health = []
@@ -132,11 +132,11 @@ class StockAnalysisPrompt(BasePrompt):
                         try:
                             date_obj = datetime.strptime(pub_date, '%Y-%m-%dT%H:%M:%SZ')
                             formatted_date = date_obj.strftime('%b %d, %Y')
-                            news_items.append(f"- {title} ({formatted_date})")
+                            news_items.append(f'- {title} ({formatted_date})')
                         except Exception:
-                            news_items.append(f"- {title}")
+                            news_items.append(f'- {title}')
                     else:
-                        news_items.append(f"- {title}")
+                        news_items.append(f'- {title}')
                     
                     summary = ''
                     if 'content' in item and isinstance(item['content'], dict):
@@ -145,7 +145,7 @@ class StockAnalysisPrompt(BasePrompt):
                     if summary and len(summary) > 20:
                         if len(summary) > 200:
                             summary = summary[:197] + '...'
-                        news_items.append(f"  Summary: {summary}")
+                        news_items.append(f'  Summary: {summary}')
         
         # Return formatted data as a dictionary
         return {
@@ -173,14 +173,14 @@ class StockAnalysisPrompt(BasePrompt):
         financial_health = formatted_data['financial_health']
         news = formatted_data.get('news', [])
         
-        financial_summary = "\n".join(financial_metrics) if financial_metrics else "Financial data not available"
-        price_history_text = "\n".join(price_history)
-        technical_analysis_section = "\n".join(tech_analysis) if tech_analysis else "Technical indicators not available"
-        financial_health_section = "\n".join(financial_health) if financial_health else "Financial health data not available"
-        news_section = "\n".join(news) if news else "No recent news available"
+        financial_summary = '\n'.join(financial_metrics) if financial_metrics else 'Financial data not available'
+        price_history_text = '\n'.join(price_history)
+        technical_analysis_section = '\n'.join(tech_analysis) if tech_analysis else 'Technical indicators not available'
+        financial_health_section = '\n'.join(financial_health) if financial_health else 'Financial health data not available'
+        news_section = '\n'.join(news) if news else 'No recent news available'
 
         # Create the prompt
-        prompt = f"""
+        prompt = f'''
 You are a financial analyst providing insights on stock {company['symbol']} ({company['name']}).
 
 COMPANY INFORMATION:
@@ -240,7 +240,7 @@ ACME Inc. currently trades at $152.33 with a market cap of $2.3B, showing a rece
 <b>Key Signals</b>
 ✅ Strong profit margin (23.4%) outperforming sector average by 7.2%
 ✅ Recent price momentum with 5.2% gain over 7 days
-✅ Analyst consensus is "buy" with target price 15% above current levels
+✅ Analyst consensus is 'buy' with target price 15% above current levels
 ❎ High debt-to-equity ratio (1.8) indicates significant leverage
 ❎ Forward P/E of 25.3 suggests premium valuation compared to peers
 
@@ -253,5 +253,5 @@ Strong fundamentals and positive momentum outweigh valuation concerns, making th
 While fundamentals are solid, high valuation and debt levels create vulnerability to market downturns or interest rate changes.
 
 Keep your response concise and focused on the most important insights. If certain data points are missing, acknowledge the limitations of your analysis.
-        """
+        '''
         return prompt
