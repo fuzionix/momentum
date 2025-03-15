@@ -108,6 +108,90 @@ VALUES (%s, %s, %s)
             cursor.execute(sql, (user_id, ticker_symbol, replicate_id))
             self.connection.commit()
             return cursor.lastrowid
+        
+    def get_user_credits(self, telegram_id):
+        '''Get user's current credits and check if they need renewal'''
+        user = self.get_user(telegram_id)
+        if not user:
+            return 0
+        
+        self.check_and_renew_credits(user)
+        
+        updated_user = self.get_user(telegram_id)
+        return updated_user['credits']
+    
+    def check_and_renew_credits(self, user):
+        '''Check if credits need to be renewed and update them'''
+        self.ensure_connection()
+        
+        last_reset = user['last_reset']
+        current_time = datetime.now()
+        
+        # If last reset was more than 24 hours ago, renew credits
+        if (current_time - last_reset).days >= 1:
+            with self.connection.cursor() as cursor:
+                if user['credits'] < 3:
+                    sql = '''
+UPDATE users 
+SET credits = 3, last_reset = %s 
+WHERE id = %s
+                    '''
+                    cursor.execute(sql, (current_time, user['id']))
+                else:
+                    sql = '''
+UPDATE users 
+SET last_reset = %s 
+WHERE id = %s
+                    '''
+                    cursor.execute(sql, (current_time, user['id']))
+                
+                self.connection.commit()
+    
+    def use_credit(self, telegram_id):
+        '''Use one credit for analysis. Returns (success, credits_left)'''
+        user = self.get_user(telegram_id)
+        if not user:
+            return False, 0
+            
+        self.check_and_renew_credits(user)
+        user = self.get_user(telegram_id)
+        
+        if user['credits'] <= 0:
+            return False, 0
+            
+        # Use one credit
+        self.ensure_connection()
+        with self.connection.cursor() as cursor:
+            sql = '''
+UPDATE users
+SET credits = credits - 1
+WHERE telegram_id = %s
+            '''
+            cursor.execute(sql, (telegram_id,))
+            self.connection.commit()
+            
+        updated_user = self.get_user(telegram_id)
+        return True, updated_user['credits']
+    
+    def get_credits_info(self, telegram_id):
+        '''Get detailed information about user's credits'''
+        user = self.get_user(telegram_id)
+        if not user:
+            return {
+                'credits': 0,
+                'last_reset': datetime.now(),
+                'next_reset': datetime.now() + timedelta(days=1)
+            }
+            
+        self.check_and_renew_credits(user)
+        user = self.get_user(telegram_id)
+        next_reset = user['last_reset'] + timedelta(days=1)
+        
+        return {
+            'credits': user['credits'],
+            'last_reset': user['last_reset'],
+            'next_reset': next_reset
+        }
             
     def close(self):
         '''Close the database connection'''

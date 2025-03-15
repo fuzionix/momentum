@@ -1,3 +1,4 @@
+from datetime import datetime
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CommandHandler, CallbackQueryHandler, MessageHandler, ContextTypes, filters
 from utils.validation import Validation
@@ -23,30 +24,17 @@ class TelegramService:
             language=user.language_code
         )
 
-        keyboard = [
-            [InlineKeyboardButton('🎯 Analyze Stock', callback_data='analyze_stock')],
-            [InlineKeyboardButton('⚫ About Momentum', callback_data='about_bot')]
-        ]
-        reply_markup = InlineKeyboardMarkup(keyboard)
-        await update.message.reply_text(
-            text='Momentum deliver comprehensive financial analysis powered by AI reasoning model.',
-            reply_markup=reply_markup
-        )
+        await self.render_home_page(update.message)
 
     async def button_callback(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         query = update.callback_query
         await query.answer()
+
+        user = update.effective_user
+        telegram_id = user.id
         
         if query.data == 'go_home':
-            keyboard = [
-                [InlineKeyboardButton('🎯 Analyze Stock', callback_data='analyze_stock')],
-                [InlineKeyboardButton('⚫ About Momentum', callback_data='about_bot')]
-            ]
-            reply_markup = InlineKeyboardMarkup(keyboard)
-            await query.message.reply_text(
-                text='Momentum deliver comprehensive financial analysis powered by AI reasoning model.',
-                reply_markup=reply_markup
-            )
+            await self.render_home_page(query.message)
 
         elif query.data == 'about_bot':
             about_text = (
@@ -73,6 +61,23 @@ class TelegramService:
             await query.message.reply_text(
                 text='Please enter the stock ticker symbol. E.g. AAPL',
             )
+
+        elif query.data == "check_credits":
+            await self.send_credit_info(query.message, telegram_id)
+
+    async def render_home_page(self, message):
+        keyboard = [
+            [
+                InlineKeyboardButton('🎯 Analyze Stock', callback_data='analyze_stock'), 
+                InlineKeyboardButton('🪙 Check Credits', callback_data='check_credits')
+            ],
+            [InlineKeyboardButton('⚫ About Momentum', callback_data='about_bot')]
+        ]
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        await message.reply_text(
+            text='Momentum deliver comprehensive financial analysis powered by AI reasoning model.',
+            reply_markup=reply_markup
+        )
             
     async def message_handler(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         '''Handle messages based on previous context'''
@@ -143,6 +148,35 @@ class TelegramService:
             text=insights,
             parse_mode='HTML',
             reply_markup=reply_markup
+        )
+
+    async def send_credit_info(self, message, telegram_id):
+        """Send credit information to the user"""
+        credit_info = self.db_service.get_credits_info(telegram_id)
+        credits = credit_info['credits']
+        next_reset = credit_info['next_reset']
+        
+        # Format time until reset
+        time_until_reset = next_reset - datetime.now()
+        hours = int(time_until_reset.total_seconds() // 3600)
+        minutes = int((time_until_reset.total_seconds() % 3600) // 60)
+        
+        credit_emoji = "🟢" if credits >= 3 else "🟡" if credits > 0 else "🔴"
+        credit_text = (
+            f"<b>Your Credits: {credits} {credit_emoji}</b>\n\n"
+            f"• Each analysis costs 1 credit\n"
+            f"• Credits renew to at least 3 every 24 hours\n"
+            f"• Next reset in approximately {hours}h {minutes}m\n\n"
+        )
+        
+        if credits <= 0:
+            credit_text += "⚠️ You're out of credits! Please wait for renewal."
+        elif credits == 1:
+            credit_text += "⚠️ You have just 1 credit left! Use it wisely."
+        
+        await message.reply_text(
+            text=credit_text,
+            parse_mode="HTML",
         )
 
     def setup(self):
