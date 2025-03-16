@@ -35,6 +35,7 @@ class DatabaseService:
     def get_user(self, telegram_id):
         '''Get user by Telegram ID'''
         self.ensure_connection()
+        self.connection.commit()
         with self.connection.cursor() as cursor:
             sql = 'SELECT * FROM users WHERE telegram_id = %s'
             cursor.execute(sql, (telegram_id,))

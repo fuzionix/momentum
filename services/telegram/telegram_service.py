@@ -55,6 +55,11 @@ class TelegramService:
             )
             
         elif query.data == 'analyze_stock':
+            credits = self.db_service.get_user_credits(telegram_id)
+            if credits <= 0:
+                await self.render_out_of_credits(query.message, telegram_id)
+                return
+            
             context.user_data['awaiting_ticker'] = {
                 'mode': 'analyze_stock'
             }
@@ -68,15 +73,40 @@ class TelegramService:
     async def render_home_page(self, message):
         keyboard = [
             [
-                InlineKeyboardButton('🎯 Analyze Stock', callback_data='analyze_stock'), 
-                InlineKeyboardButton('🪙 Check Credits', callback_data='check_credits')
+                InlineKeyboardButton('Analyze Stock', callback_data='analyze_stock'), 
+                InlineKeyboardButton('Inspect Stock', callback_data='inspect_stock'),
             ],
-            [InlineKeyboardButton('⚫ About Momentum', callback_data='about_bot')]
+            [
+                InlineKeyboardButton('Trending Picker', callback_data='pick_trending'),
+            ],
+            [
+                InlineKeyboardButton('Check Credits', callback_data='check_credits'),
+                InlineKeyboardButton('Setting', callback_data='setting'),
+            ],
+            [
+                InlineKeyboardButton('How To Use', callback_data='tutorial'),
+            ],
+            [
+                InlineKeyboardButton('About Momentum', callback_data='about_bot')
+            ]
         ]
         reply_markup = InlineKeyboardMarkup(keyboard)
         await message.reply_text(
             text='Momentum deliver comprehensive financial analysis powered by AI reasoning model.',
             reply_markup=reply_markup
+        )
+
+    async def render_out_of_credits(self, message, telegram_id):
+        credit_info = self.db_service.get_credits_info(telegram_id)
+        next_reset = credit_info['next_reset']
+
+        time_until_reset = next_reset - datetime.now()
+        hours = int(time_until_reset.total_seconds() // 3600)
+        minutes = int((time_until_reset.total_seconds() % 3600) // 60)
+
+        await message.reply_text(
+            text=f"⚠️ You're out of credits! \n\nCredits will renew in approximately {hours}h {minutes}m.",
+            parse_mode="HTML",
         )
             
     async def message_handler(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -119,9 +149,15 @@ class TelegramService:
                 'mode': 'analyze_stock'
             }
             return
+        
+        success, credits_left = self.db_service.use_credit(db_user.get('telegram_id'))
+        if not success:
+            await self.render_out_of_credits(update.message, db_user.get('telegram_id'))
+            return
+
 
         message = self.validation.format_telegram_message(
-            f'Analyzing {ticker_symbol}'
+            f'Analyzing {ticker_symbol} ...'
         )
         loading_message = await update.message.reply_text(
             text=message,
@@ -140,7 +176,7 @@ class TelegramService:
         await loading_message.delete()
 
         keyboard = [
-            [InlineKeyboardButton('🏠 Home Page', callback_data='go_home')],
+            [InlineKeyboardButton('Home Page', callback_data='go_home')],
         ]
         reply_markup = InlineKeyboardMarkup(keyboard)
 
