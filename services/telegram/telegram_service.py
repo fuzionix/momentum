@@ -1,3 +1,4 @@
+from typing import Dict
 from datetime import datetime
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CommandHandler, CallbackQueryHandler, MessageHandler, ContextTypes, filters
@@ -130,7 +131,7 @@ class TelegramService:
             await self.process_ticker(update, context, message_text, db_user)
             return
         
-    async def process_ticker(self, update: Update, context: ContextTypes.DEFAULT_TYPE, ticker_symbol: str, db_user: dict):
+    async def process_ticker(self, update: Update, context: ContextTypes.DEFAULT_TYPE, ticker_symbol: str, db_user: Dict):
         '''Process ticker symbol (extracted for reuse)'''
         ticker_symbol = ticker_symbol.upper()
         

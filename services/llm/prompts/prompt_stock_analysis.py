@@ -1,3 +1,4 @@
+from typing import Dict
 from datetime import datetime
 from utils.formatters import format_large_number
 from services.llm.prompts.prompt_base import BasePrompt
@@ -5,7 +6,7 @@ from services.llm.prompts.prompt_base import BasePrompt
 class StockAnalysisPrompt(BasePrompt):
     '''Prompt generator for stock analysis'''
 
-    def format_data(stock_data: dict) -> dict:
+    def format_data(stock_data: Dict) -> Dict:
         # Extract basic information
         info = stock_data.get('info', {})
 
@@ -53,9 +54,9 @@ class StockAnalysisPrompt(BasePrompt):
         
         try:
             history = stock_data.get('history', {})
-            if isinstance(history, dict) and 'Close' in history:
+            if isinstance(history, Dict) and 'Close' in history:
                 close_data = history['Close']
-                if isinstance(close_data, dict) and close_data:
+                if isinstance(close_data, Dict) and close_data:
                     prices = list(close_data.values())[-30:]
                     
                     if prices:
@@ -69,7 +70,7 @@ class StockAnalysisPrompt(BasePrompt):
                         # Add trading volume if available
                         if 'Volume' in history:
                             volume_data = history['Volume']
-                            if isinstance(volume_data, dict) and volume_data:
+                            if isinstance(volume_data, Dict) and volume_data:
                                 avg_volume = sum(list(volume_data.values())[-30:]) / 30
                                 price_history_section.append(f'- Avg Daily Volume: {int(avg_volume):,}')
         except Exception:
@@ -84,7 +85,7 @@ class StockAnalysisPrompt(BasePrompt):
             try:
                 latest = {}
                 for indicator, values in technical_indicators.items():
-                    if values and isinstance(values, dict):
+                    if values and isinstance(values, Dict):
                         latest_date = max(values.keys())
                         latest[indicator] = values[latest_date]
                 
@@ -119,13 +120,13 @@ class StockAnalysisPrompt(BasePrompt):
         if news_data and isinstance(news_data, list):
             recent_news = news_data[:5]
             for item in recent_news:
-                if isinstance(item, dict):
+                if isinstance(item, Dict):
                     content = item.get('content', {})
-                    if isinstance(content, dict):
+                    if isinstance(content, Dict):
                         title = content.get('title', 'No title')
                     
                     pub_date = ''
-                    if 'content' in item and isinstance(item['content'], dict):
+                    if 'content' in item and isinstance(item['content'], Dict):
                         pub_date = item['content'].get('pubDate', '')
                         
                     if pub_date:
@@ -139,7 +140,7 @@ class StockAnalysisPrompt(BasePrompt):
                         news_items.append(f'- {title}')
                     
                     summary = ''
-                    if 'content' in item and isinstance(item['content'], dict):
+                    if 'content' in item and isinstance(item['content'], Dict):
                         summary = item['content'].get('summary', '')
                         
                     if summary and len(summary) > 20:
@@ -165,7 +166,7 @@ class StockAnalysisPrompt(BasePrompt):
             'news': news_items
         }
     
-    def build_prompt(formatted_data: dict) -> str:
+    def build_prompt(formatted_data: Dict) -> str:
         company = formatted_data['company']
         financial_metrics = formatted_data['financial_metrics']
         price_history = formatted_data['price_history']
