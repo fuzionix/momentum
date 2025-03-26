@@ -150,12 +150,6 @@ class TelegramService:
                 'mode': 'analyze_stock'
             }
             return
-        
-        success, credits_left = self.db_service.use_credit(db_user.get('telegram_id'))
-        if not success:
-            await self.render_out_of_credits(update.message, db_user.get('telegram_id'))
-            return
-
 
         message = self.validation.format_telegram_message(
             f'Analyzing {ticker_symbol} ...'
@@ -166,6 +160,22 @@ class TelegramService:
         )
 
         stock_data = self.yahoo_service.get_stock_data(ticker_symbol)
+        if 'error' in stock_data:
+            await loading_message.delete()
+            error_msg = f"❌ Error retrieving stock data. Please try again with a valid ticker symbol."
+            context.user_data['awaiting_ticker'] = {
+                'mode': 'analyze_stock'
+            }
+            await update.message.reply_text(
+                text=error_msg,
+            )
+            return
+        
+        success, credits_left = self.db_service.use_credit(db_user.get('telegram_id'))
+        if not success:
+            await self.render_out_of_credits(update.message, db_user.get('telegram_id'))
+            return
+        
         insights, replicate_id = self.replicate_service.get_financial_insight(stock_data)
 
         self.db_service.log_analysis(

@@ -13,7 +13,7 @@ telegram_service = TelegramService(TELEGRAM_TOKEN, db_service)
 
 @app.route('/')
 def home():
-    return "Ticker Bot is running!"
+    return "Momentum Financial Bot is running!"
 
 def main():
     print("Bot is running!")
