@@ -2,8 +2,7 @@ version: '3.8'
 
 services:
   app:
-    build:
-      context: .
+    image: taylonchan/momentum:latest
     container_name: momentum
     ports:
       - "5000:5000"
