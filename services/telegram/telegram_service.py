@@ -1,6 +1,6 @@
 from typing import Dict
 from datetime import datetime
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, BotCommand, MenuButtonCommands
 from telegram.ext import Application, CommandHandler, CallbackQueryHandler, MessageHandler, ContextTypes, filters
 from utils.validation import Validation
 from services.database.db_service import DatabaseService
@@ -15,6 +15,15 @@ class TelegramService:
         self.validation = Validation()
         self.db_service = db_service
 
+    async def setup_chat_menu(self):        
+        commands = [
+            BotCommand('analyze', 'Analyze a stock'),
+            BotCommand('credits', 'Check remaining credits'),
+        ]
+        
+        await self.application.bot.set_my_commands(commands)
+        await self.application.bot.set_chat_menu_button(menu_button=MenuButtonCommands())
+
     async def start_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         user = update.effective_user
         self.db_service.get_or_create_user(
@@ -27,12 +36,15 @@ class TelegramService:
 
         await self.render_home_page(update.message)
 
+    async def analyze_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        await self.analyze_stock(update, context)
+
+    async def credits_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        await self.check_credits(update)
+
     async def button_callback(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         query = update.callback_query
         await query.answer()
-
-        user = update.effective_user
-        telegram_id = user.id
         
         if query.data == 'go_home':
             await self.render_home_page(query.message)
@@ -56,33 +68,16 @@ class TelegramService:
             )
             
         elif query.data == 'analyze_stock':
-            credits = self.db_service.get_user_credits(telegram_id)
-            if credits <= 0:
-                await self.render_out_of_credits(query.message, telegram_id)
-                return
-            
-            context.user_data['awaiting_ticker'] = {
-                'mode': 'analyze_stock'
-            }
-            await query.message.reply_text(
-                text='Please enter the stock ticker symbol. E.g. AAPL',
-            )
+            await self.analyze_stock(update, context)
 
         elif query.data == "check_credits":
-            await self.send_credit_info(query.message, telegram_id)
+            await self.check_credits(update)
 
     async def render_home_page(self, message):
         keyboard = [
             [
                 InlineKeyboardButton('Analyze Stock', callback_data='analyze_stock'), 
-                InlineKeyboardButton('Inspect Stock', callback_data='inspect_stock'),
-            ],
-            [
-                InlineKeyboardButton('Trending Picker', callback_data='pick_trending'),
-            ],
-            [
                 InlineKeyboardButton('Check Credits', callback_data='check_credits'),
-                InlineKeyboardButton('Setting', callback_data='setting'),
             ],
             [
                 InlineKeyboardButton('How To Use', callback_data='tutorial'),
@@ -197,8 +192,15 @@ class TelegramService:
             reply_markup=reply_markup
         )
 
-    async def send_credit_info(self, message, telegram_id):
+    async def check_credits(self, update: Update):
         """Send credit information to the user"""
+        user = update.effective_user
+        telegram_id = user.id
+
+        message = update.message
+        if message is None and update.callback_query:
+            message = update.callback_query.message
+
         credit_info = self.db_service.get_credits_info(telegram_id)
         credits = credit_info['credits']
         next_reset = credit_info['next_reset']
@@ -226,10 +228,35 @@ class TelegramService:
             parse_mode="HTML",
         )
 
+    async def analyze_stock(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        """Analyze stock command"""
+        user = update.effective_user
+        telegram_id = user.id
+
+        message = update.message
+        if message is None and update.callback_query:
+            message = update.callback_query.message
+
+        credits = self.db_service.get_user_credits(telegram_id)
+        if credits <= 0:
+            await self.render_out_of_credits(message, telegram_id)
+            return
+
+        context.user_data['awaiting_ticker'] = {
+            'mode': 'analyze_stock'
+        }
+        await message.reply_text(
+            text='Please enter the stock ticker symbol. E.g. AAPL',
+        )
+
     def setup(self):
         self.application.add_handler(CommandHandler('start', self.start_command))
+        self.application.add_handler(CommandHandler('analyze', self.analyze_command))
+        self.application.add_handler(CommandHandler('credits', self.credits_command))
+        
         self.application.add_handler(CallbackQueryHandler(self.button_callback))
         self.application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, self.message_handler))
 
     def run(self):
+        # self.setup_chat_menu()
         self.application.run_polling()
