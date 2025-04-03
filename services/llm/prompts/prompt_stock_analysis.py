@@ -210,25 +210,25 @@ Based on this information, provide a financial analysis using the following stru
 [Ticker] | [Price Change] [🔺(Increase)/🔻(Decrease)]
 
 <b>Company Overview</b>
-[Provide a brief 2-3 sentence overview of the company's current financial situation and market position]
+[Provide a strategic assessment of the company's market position, recent business developments, and key competitive advantages or challenges.]
 
 <b>Key Signals</b>
-[List 6-8 key signals from the data using the format below]
+[List exactly 8 key signals, with a mix of positive and negative indicators, prioritizing the most impactful factors for investors]
 ✅ [Positive signal with brief explanation]
 ✅ [Positive signal with brief explanation]
 ❎ [Negative signal with brief explanation]
 [etc.]
 
 <b>Market Insights</b>
-[Think deeply and provide precise insights on recent market trends with related news and other relevant factors in 2 paragraphs]
-[Paragraph 1 - Market trend analysis]
-[Paragraph 2 - News impact and market outlook]
+[Paragraph 1: Analyze price action in relation to broader market trends, sector performance, and technical indicators. Include specific numbers and timeframes.]
+[Paragraph 2: Connect recent news to price movements, evaluate how market sentiment is affecting the stock, and identify potential catalysts. Reference specific news items from the provided data.]
+[Paragraph 3: Provide advanced strategic insights by analyzing competitive positioning, identifying market inefficiencies or misunderstood aspects of the business model, and evaluating the company's strategic advantage within evolving industry dynamics. Consider how macroeconomic factors, regulatory changes, or structural trends might specifically impact this company's trajectory in ways the market hasn't fully priced in. If possible, identify a contrarian view or overlooked opportunity that sophisticated investors should consider.]
 
-<b>Recommendation: [Buy/Sell/Neutral] [🟢/🔴/🟡]</b>
-[1-2 sentences explaining the final recommendation]
+<b>Recommendation: [Buy/Sell/Hold] [🟢/🔴/🟡]</b>
+[Provide a clear recommendation based on the analysis, including a target price and timeframe for the recommendation. Justify the recommendation with specific metrics and insights from the analysis.]
 
 <b>Risk Level: [Low/Medium/High] [⚪/🟠/🔴]</b>
-[Brief explanation of risk assessment]
+[Assess risk based on: volatility (Beta or price swings), financial leverage, valuation multiples vs peers, and exposure to identified market risks. Provide specific metrics to justify the risk rating.]
 
 ---
 
@@ -236,7 +236,7 @@ Example output format:
 ACME | 🔺$152.33 (+5.34%)
     
 <b>Company Overview</b>
-ACME Inc. currently trades at $152.33 with a market cap of $2.3B, showing a recent uptrend of 5.2%. The company maintains solid profit margins in a competitive industry despite recent market volatility.
+ACME Corp is a leading player in the tech sector, specializing in AI-driven solutions. The company has recently expanded its product line and secured several high-profile contracts, positioning itself for robust growth in the coming quarters.
 
 <b>Key Signals</b>
 ✅ Strong profit margin (23.4%) outperforming sector average by 7.2%
@@ -246,12 +246,15 @@ ACME Inc. currently trades at $152.33 with a market cap of $2.3B, showing a rece
 ❎ Forward P/E of 25.3 suggests premium valuation compared to peers
 
 <b>Market Insights</b>
+[Paragraph 1]
+[Paragraph 2]
+[Paragraph 3]
 
 <b>Recommendation: Buy 🟢</b>
-Strong fundamentals and positive momentum outweigh valuation concerns, making this a compelling entry point for investors with medium to long-term horizons.
+[]
 
 <b>Risk Level: Medium 🟠</b>
-While fundamentals are solid, high valuation and debt levels create vulnerability to market downturns or interest rate changes.
+[]
 
 Keep your response concise and focused on the most important insights. If certain data points are missing, acknowledge the limitations of your analysis.
         '''
