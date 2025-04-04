@@ -207,10 +207,10 @@ RECENT NEWS:
 {news_section}
 
 Based on this information, provide a financial analysis using the following structure:
-[Ticker] | [Price Change] [🔺(Increase)/🔻(Decrease)]
+[Ticker] | [Current Price] | [🔺(Increase)/🔻(Decrease)] [Percent Change %]
 
 <b>Company Overview</b>
-[Provide a strategic assessment of the company's market position, recent business developments, and key competitive advantages or challenges.]
+[Provide a brief strategic assessment of the company's market position, recent business developments, and key competitive advantages or challenges.]
 
 <b>Key Signals</b>
 [List exactly 8 key signals, with a mix of positive and negative indicators, prioritizing the most impactful factors for investors]
@@ -225,15 +225,15 @@ Based on this information, provide a financial analysis using the following stru
 [Paragraph 3: Provide advanced strategic insights by analyzing competitive positioning, identifying market inefficiencies or misunderstood aspects of the business model, and evaluating the company's strategic advantage within evolving industry dynamics. Consider how macroeconomic factors, regulatory changes, or structural trends might specifically impact this company's trajectory in ways the market hasn't fully priced in. If possible, identify a contrarian view or overlooked opportunity that sophisticated investors should consider.]
 
 <b>Recommendation: [Buy/Sell/Hold] [🟢/🔴/🟡]</b>
-[Provide a clear recommendation based on the analysis, including a target price and timeframe for the recommendation. Justify the recommendation with specific metrics and insights from the analysis.]
+[Provide a clear recommendation based on the analysis, including a target price and timeframe for the recommendation in 2-3 sentences.]
 
 <b>Risk Level: [Low/Medium/High] [⚪/🟠/🔴]</b>
-[Assess risk based on: volatility (Beta or price swings), financial leverage, valuation multiples vs peers, and exposure to identified market risks. Provide specific metrics to justify the risk rating.]
+[Assess the risk level associated with the investment recommendation, considering factors such as volatility, market conditions, and company-specific risks in 2-3 sentences.]
 
 ---
 
 Example output format:
-ACME | 🔺$152.33 (+5.34%)
+# ACME | $123.45 | 🔺 1.92%
     
 <b>Company Overview</b>
 ACME Corp is a leading player in the tech sector, specializing in AI-driven solutions. The company has recently expanded its product line and secured several high-profile contracts, positioning itself for robust growth in the coming quarters.
