@@ -14,12 +14,12 @@ class ReplicateService:
             input_data = self.format_input(stock_data)
 
             prediction = self.client.predictions.create(
-                'deepseek-ai/deepseek-r1',
+                'anthropic/claude-3.7-sonnet',
                 input={
                     'prompt': input_data,
-                    'temperature': 0.75,
                     'max_tokens': 4096,
-                    'top_p': 0.9
+                    'system_prompt': '',
+                    'max_image_resolution': 0.5
                 }
             )
 
@@ -40,7 +40,10 @@ class ReplicateService:
             # Remove <think> blocks
             cleaned_output = self.remove_think_blocks(full_output)
 
-            return cleaned_output, prediction_id
+            # Sanitize for Telegram HTML parsing
+            sanitized_output = self.sanitize_telegram_html(cleaned_output)
+
+            return sanitized_output, prediction_id
         except Exception as e:
             return f'Error generating insight: {str(e)}'
         
@@ -60,8 +63,31 @@ class ReplicateService:
         return prompt
     
     def remove_think_blocks(self, text: str) -> str:
-        """Remove content between <think> and </think> tags"""
+        '''Remove content between <think> and </think> tags'''
         pattern = r'<think>.*?</think>'
         cleaned_text = re.sub(pattern, '', text, flags=re.DOTALL)
         cleaned_text = re.sub(r'\n{3,}', '\n\n', cleaned_text)
         return cleaned_text.strip()
+    
+    def sanitize_telegram_html(self, text: str) -> str:
+        '''Sanitize text for Telegram HTML parsing to prevent parsing issues with < and > characters'''
+        # Replace standalone < symbols that might cause HTML parsing issues
+        text = re.sub(r'<(\d|\s|\.)', r'&lt;\1', text)
+        text = re.sub(r'(\d|\s)>', r'\1&gt;', text)
+        
+        # Handle comparison operators like <= and >=
+        text = text.replace('<=', '&lt;=')
+        text = text.replace('>=', '&gt;=')
+        
+        # Preserve legitimate HTML tags that Telegram supports
+        # Telegram supports <b>, <strong>, <i>, <em>, <u>, <ins>, <s>, <strike>, <del>, <a>, <code>, <pre>
+        allowed_tags = r'</?(?:b|strong|i|em|u|ins|s|strike|del|a|code|pre)(?:\s+[^>]*)?>'
+        
+        # Function to replace matches with placeholders
+        def preserve_tag(match):
+            return match.group(0)
+        
+        # Preserve allowed HTML tags
+        text = re.sub(allowed_tags, preserve_tag, text, flags=re.IGNORECASE)
+        
+        return text
