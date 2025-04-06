@@ -246,7 +246,7 @@ class TelegramService:
             'mode': 'analyze_stock'
         }
         await message.reply_text(
-            text='Please enter the stock ticker symbol. E.g. AAPL',
+            text='Please enter the stock ticker symbol. E.g. NVDA',
         )
 
     def setup(self):
