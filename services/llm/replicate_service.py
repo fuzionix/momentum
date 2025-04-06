@@ -14,12 +14,12 @@ class ReplicateService:
             input_data = self.format_input(stock_data)
 
             prediction = self.client.predictions.create(
-                'anthropic/claude-3.7-sonnet',
+                'meta/llama-4-maverick-instruct',
                 input={
                     'prompt': input_data,
                     'max_tokens': 4096,
-                    'system_prompt': '',
-                    'max_image_resolution': 0.5
+                    'top_p': 0.9,
+                    'temperature': 0.75,
                 }
             )
 
