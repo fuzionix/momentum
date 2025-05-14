@@ -10,13 +10,16 @@ class ReplicateService:
 
     def get_financial_insight(self, stock_data: Dict) -> Tuple[str, str]:
         try:
-            # Format the input data for the model
-            input_data = self.format_input(stock_data)
+            if 'error' in stock_data:
+                return f'Error retrieving stock data: {stock_data["error"]}'
+                                
+            # Build prompt with stock data
+            prompt = StockAnalysisPrompt.build_prompt(stock_data)
 
             prediction = self.client.predictions.create(
                 'meta/llama-4-maverick-instruct',
                 input={
-                    'prompt': input_data,
+                    'prompt': prompt,
                     'max_tokens': 4096,
                     'top_p': 0.9,
                     'temperature': 0.75,
@@ -45,22 +48,7 @@ class ReplicateService:
 
             return sanitized_output, prediction_id
         except Exception as e:
-            return f'Error generating insight: {str(e)}'
-        
-    def format_input(self, stock_data: Dict) -> str:
-        '''Format stock data into a prompt for the LLM to analyze.'''
-        if 'error' in stock_data:
-            return f'Error retrieving stock data: {stock_data["error"]}'
-        
-        # Extract and format data
-        formatted_data = StockAnalysisPrompt.format_data(stock_data)
-        
-        # Build prompt with formatted data
-        prompt = StockAnalysisPrompt.build_prompt(formatted_data)
-
-        print(f"Formatted input for LLM: {prompt}")
-        
-        return prompt
+            return f'Error generating insight: {str(e)}', 'error_id'
     
     def remove_think_blocks(self, text: str) -> str:
         '''Remove content between <think> and </think> tags'''
