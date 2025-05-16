@@ -49,11 +49,11 @@ class StockAnalysisPrompt(BasePrompt):
 '''
         
         financial_health_section = f'''
-- Profit Margin: {stock_info['profit_margins'] * 100:.2f}%
-- Operating Margin: {stock_info['operating_margins'] * 100:.2f}%
-- Gross Margin: {stock_info['gross_margins'] * 100:.2f}%
-- Return on Equity: {stock_info['return_on_equity'] * 100:.2f}%
-- Return on Assets: {stock_info['return_on_assets'] * 100:.2f}%
+- Profit Margin: {f"{float(stock_info['profit_margins']) * 100:.2f}%" if stock_info['profit_margins'] != 'N/A' else 'N/A'}
+- Operating Margin: {f"{float(stock_info['operating_margins']) * 100:.2f}%" if stock_info['operating_margins'] != 'N/A' else 'N/A'}
+- Gross Margin: {f"{float(stock_info['gross_margins']) * 100:.2f}%" if stock_info['gross_margins'] != 'N/A' else 'N/A'}
+- Return on Equity: {f"{float(stock_info['return_on_equity']) * 100:.2f}%" if stock_info['return_on_equity'] != 'N/A' else 'N/A'}
+- Return on Assets: {f"{float(stock_info['return_on_assets']) * 100:.2f}%" if stock_info['return_on_assets'] != 'N/A' else 'N/A'}
 - Debt to Equity: {stock_info['debt_to_equity']}
 - Current Ratio: {stock_info['current_ratio']}
 - Quick Ratio: {stock_info['quick_ratio']}
