@@ -6,6 +6,7 @@ from utils.validation import Validation
 from services.database.db_service import DatabaseService
 from services.data.yahoo_service import YahooFinanceService
 from services.llm.replicate_service import ReplicateService
+from localization.translator import Translator
 
 class TelegramService:
     def __init__(self, token: str, db_service: DatabaseService):
@@ -14,6 +15,7 @@ class TelegramService:
         self.replicate_service = ReplicateService()
         self.validation = Validation()
         self.db_service = db_service
+        self.translator = Translator
 
     async def setup_chat_menu(self):        
         commands = [

@@ -1,0 +1,3 @@
+TRANSLATIONS = {
+    "loading": "Analyzing {ticker} ..."
+}
