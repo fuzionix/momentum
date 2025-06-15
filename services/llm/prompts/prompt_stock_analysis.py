@@ -12,58 +12,58 @@ class StockAnalysisPrompt(BasePrompt):
         news = stock_data['news']
 
         financial_summary = f'''
-- Current Price: ${stock_info['current_price']}
-- Market Cap: {format_large_number(stock_info['market_cap'])}
-- P/E Ratio: {stock_info['pe_ratio']}
-- Forward P/E: {stock_info['forward_pe']}
-- EPS: ${stock_info['eps']}
-- Forward EPS: ${stock_info['forward_eps']}
-- Revenue: {format_large_number(stock_info['revenue'])}
-- Dividend Yield: {stock_info['dividend_yield']}%
-- Target Mean Price: ${stock_info['target_mean_price']}
-- Analyst Recommendation: {stock_info['recommendation'].capitalize()}
-- Analyst Count: {stock_info['num_analyst_opinions']}
+- 當前價格：${stock_info['current_price']}
+- 市值：{format_large_number(stock_info['market_cap'])}
+- 市盈率：{stock_info['pe_ratio']}
+- 預期市盈率：{stock_info['forward_pe']}
+- 每股收益：${stock_info['eps']}
+- 預期每股收益：${stock_info['forward_eps']}
+- 營業收入：{format_large_number(stock_info['revenue'])}
+- 股息收益率：{stock_info['dividend_yield']}%
+- 目標均價：${stock_info['target_mean_price']}
+- 分析師建議：{stock_info['recommendation'].capitalize()}
+- 分析師人數：{stock_info['num_analyst_opinions']}
 '''
 
         price_history_text = f'''
-- Date Range: {historical_data['start_date']} to {historical_data['end_date']}
-- Starting Price: ${historical_data['start_price']}
-- Current Price: ${historical_data['end_price']}
-- Change: ${historical_data['price_change']} ({historical_data['percent_change']}%)
-- 1-Month Range: ${historical_data['min_price']} - ${historical_data['max_price']}
-- Average Volume: {format_large_number(historical_data['avg_volume'])}
-- 52-Week Range: ${stock_info['fifty_two_week_low']} - ${stock_info['fifty_two_week_high']}
-- 50-Day Moving Average: ${stock_info['fifty_day_average']}
-- 200-Day Moving Average: ${stock_info['two_hundred_day_average']}
+- 日期範圍：{historical_data['start_date']} 至 {historical_data['end_date']}
+- 起始價格：${historical_data['start_price']}
+- 當前價格：${historical_data['end_price']}
+- 變動：${historical_data['price_change']} ({historical_data['percent_change']}%)
+- 一個月範圍：${historical_data['min_price']} - ${historical_data['max_price']}
+- 平均成交量：{format_large_number(historical_data['avg_volume'])}
+- 52 週範圍：${stock_info['fifty_two_week_low']} - ${stock_info['fifty_two_week_high']}
+- 50 日移動平均線：${stock_info['fifty_day_average']}
+- 200 日移動平均線：${stock_info['two_hundred_day_average']}
 '''
         
         technical_analysis_section = f'''
-- RSI (14): {historical_data['current_indicators']['rsi']} ({'Overbought' if historical_data['technical_signals']['rsi_overbought'] else 'Oversold' if historical_data['technical_signals']['rsi_oversold'] else 'Neutral'})
-- MACD: {historical_data['current_indicators']['macd']} (Signal: {historical_data['current_indicators']['macd_signal']})
-- MACD Signal: {'Bullish' if historical_data['technical_signals']['macd_bullish'] else 'Bearish'}
-- 20-Day SMA: ${historical_data['current_indicators']['sma20']}
-- Price vs 20-Day SMA: {'Above' if historical_data['technical_signals']['price_above_sma20'] else 'Below'}
-- Bollinger Bands: Upper ${historical_data['current_indicators']['upper_bollinger']} / Lower ${historical_data['current_indicators']['lower_bollinger']}
-- ATR: ${historical_data['current_indicators']['atr']}
-- 1-Month Volatility: {historical_data['volatility']}
+- RSI (14)：{historical_data['current_indicators']['rsi']} ({'超買' if historical_data['technical_signals']['rsi_overbought'] else '超賣' if historical_data['technical_signals']['rsi_oversold'] else '中性'})
+- MACD：{historical_data['current_indicators']['macd']} (訊號線：{historical_data['current_indicators']['macd_signal']})
+- MACD 訊號：{'看漲' if historical_data['technical_signals']['macd_bullish'] else '看跌'}
+- 20 日簡單移動平均線：${historical_data['current_indicators']['sma20']}
+- 價格與 20 日均線關係：{'Above' if historical_data['technical_signals']['price_above_sma20'] else 'Below'}
+- 布林帶：上軌 ${historical_data['current_indicators']['upper_bollinger']} / 下軌 ${historical_data['current_indicators']['lower_bollinger']}
+- ATR：${historical_data['current_indicators']['atr']}
+- 一個月波動率：{historical_data['volatility']}
 '''
         
         financial_health_section = f'''
-- Profit Margin: {f"{float(stock_info['profit_margins']) * 100:.2f}%" if stock_info['profit_margins'] != 'N/A' else 'N/A'}
-- Operating Margin: {f"{float(stock_info['operating_margins']) * 100:.2f}%" if stock_info['operating_margins'] != 'N/A' else 'N/A'}
-- Gross Margin: {f"{float(stock_info['gross_margins']) * 100:.2f}%" if stock_info['gross_margins'] != 'N/A' else 'N/A'}
-- Return on Equity: {f"{float(stock_info['return_on_equity']) * 100:.2f}%" if stock_info['return_on_equity'] != 'N/A' else 'N/A'}
-- Return on Assets: {f"{float(stock_info['return_on_assets']) * 100:.2f}%" if stock_info['return_on_assets'] != 'N/A' else 'N/A'}
-- Debt to Equity: {stock_info['debt_to_equity']}
-- Current Ratio: {stock_info['current_ratio']}
-- Quick Ratio: {stock_info['quick_ratio']}
-- Operating Cash Flow: {format_large_number(stock_info['operating_cash_flow'])}
-- Free Cash Flow: {format_large_number(stock_info['free_cash_flow'])}
-- Total Cash: {format_large_number(stock_info['total_cash'])}
-- Total Debt: {format_large_number(stock_info['total_debt'])}
-- PEG Ratio: {stock_info['peg_ratio']}
-- Price to Book: {stock_info['price_to_book']}
-- Price to Sales: {stock_info['price_to_sales']}
+- 利潤率：{f"{float(stock_info['profit_margins']) * 100:.2f}%" if stock_info['profit_margins'] != 'N/A' else 'N/A'}
+- 營運利潤率：{f"{float(stock_info['operating_margins']) * 100:.2f}%" if stock_info['operating_margins'] != 'N/A' else 'N/A'}
+- 毛利率：{f"{float(stock_info['gross_margins']) * 100:.2f}%" if stock_info['gross_margins'] != 'N/A' else 'N/A'}
+- 股本回報率：{f"{float(stock_info['return_on_equity']) * 100:.2f}%" if stock_info['return_on_equity'] != 'N/A' else 'N/A'}
+- 資產回報率：{f"{float(stock_info['return_on_assets']) * 100:.2f}%" if stock_info['return_on_assets'] != 'N/A' else 'N/A'}
+- 負債權益比：{stock_info['debt_to_equity']}
+- 流動比率：{stock_info['current_ratio']}
+- 速動比率：{stock_info['quick_ratio']}
+- 營運現金流：{format_large_number(stock_info['operating_cash_flow'])}
+- 自由現金流：{format_large_number(stock_info['free_cash_flow'])}
+- 總現金：{format_large_number(stock_info['total_cash'])}
+- 總負債：{format_large_number(stock_info['total_debt'])}
+- PEG 比率：{stock_info['peg_ratio']}
+- 市淨率：{stock_info['price_to_book']}
+- 市銷率：{stock_info['price_to_sales']}
 '''
         
         news_items = []
@@ -76,80 +76,80 @@ class StockAnalysisPrompt(BasePrompt):
 
         # Create the prompt
         prompt = f'''
-You are a financial analyst providing insights on stock {stock_data['ticker']} ({stock_info['name']}).
+你是一位金融分析師，正在為股票 {stock_data['ticker']} ({stock_info['name']}) 提供見解。
 
-COMPANY INFORMATION:
-- Symbol: {stock_data['ticker']}
-- Company: {stock_info['name']}
-- Sector: {stock_info['sector']}
-- Industry: {stock_info['industry']}
-- Business Summary: {stock_info['business_summary']}
+公司資料：
+- 股票代號：{stock_data['ticker']}
+- 公司名稱：{stock_info['name']}
+- 行業：{stock_info['sector']}
+- 產業：{stock_info['industry']}
+- 業務概要：{stock_info['business_summary']}
 
-FINANCIAL METRICS:
+財務指標：
 {financial_summary}
 
-MARKET DATA:
+市場數據：
 {price_history_text}
 
-TECHNICAL ANALYSIS:
+技術分析：
 {technical_analysis_section}
     
-FINANCIAL HEALTH:
+財務健康：
 {financial_health_section}
 
-RECENT NEWS:
+最新消息：
 {news_section}
 
-Based on this information, provide a financial analysis using the following structure:
-[Ticker] | [Current Price] | [🔺(Increase)/🔻(Decrease)] [Percent Change %]
+根據這些資料，請按照以下結構提供財務分析：
+[股票代號] | [當前價格] | [🔺(上升)/🔻(下降)] [百分比變動 %]
 
-<b>Company Overview</b>
-[Provide a brief strategic assessment of the company's market position, recent business developments, and key competitive advantages or challenges.]
+<b>公司概覽</b>
+[提供公司市場地位、近期業務發展以及主要競爭優勢或挑戰的簡要戰略評估。]
 
-<b>Key Signals</b>
-[List exactly 8 key signals, with a mix of positive and negative indicators, prioritizing the most impactful factors for investors]
-✅ [Positive signal with brief explanation]
-✅ [Positive signal with brief explanation]
-❎ [Negative signal with brief explanation]
-[etc.]
+<b>關鍵訊號</b>
+[列出恰好8個關鍵訊號，混合正面和負面指標，優先考慮對投資者最有影響力的因素]
+✅ [正面訊號及簡短解釋]
+✅ [正面訊號及簡短解釋]
+❎ [負面訊號及簡短解釋]
+[等等]
 
-<b>Market Insights</b>
-[Paragraph 1: Analyze price action in relation to broader market trends, sector performance, and technical indicators. Include specific numbers and timeframes.]
-[Paragraph 2: Connect recent news to price movements, evaluate how market sentiment is affecting the stock, and identify potential catalysts. Reference specific news items from the provided data.]
-[Paragraph 3: Provide advanced strategic insights by analyzing competitive positioning, identifying market inefficiencies or misunderstood aspects of the business model, and evaluating the company's strategic advantage within evolving industry dynamics. Consider how macroeconomic factors, regulatory changes, or structural trends might specifically impact this company's trajectory in ways the market hasn't fully priced in. If possible, identify a contrarian view or overlooked opportunity that sophisticated investors should consider.]
+<b>市場洞察</b>
+[第1段]：[分析價格走勢與更廣泛的市場趨勢、行業表現和技術指標的關係。包括具體數字和時間框架。]
+[第2段]：[將近期新聞與價格變動聯繫起來，評估市場情緒如何影響股票，並識別潛在催化劑。引用提供數據中的具體新聞項目。]
+[第3段]：[通過分析競爭定位、識別市場低效率或被誤解的業務模式方面，以及評估公司在不斷演變的行業動態中的戰略優勢，提供高級戰略洞察。考慮宏觀經濟因素、監管變化或結構性趨勢如何特別影響這家公司的軌跡，以市場尚未充分定價的方式。如果可能，識別資深投資者應考慮的反向觀點或被忽視的機會。]
 
-<b>Recommendation: [Buy/Sell/Hold] [🟢/🔴/🟡]</b>
-[Provide a clear recommendation based on the analysis, including a target price and timeframe for the recommendation in 2-3 sentences.]
+<b>建議：[買入/賣出/持有] [🟢/🔴/🟡]</b>
+[根據分析提供明確的建議，包括目標價格和建議的時間框架，使用2-3句話。]
 
-<b>Risk Level: [Low/Medium/High] [⚪/🟠/🔴]</b>
-[Assess the risk level associated with the investment recommendation, considering factors such as volatility, market conditions, and company-specific risks in 2-3 sentences.]
+<b>風險級別：[低/中/高] [⚪/🟠/🔴]</b>
+[評估與投資建議相關的風險水平，考慮波動性、市場條件和公司特定風險等因素，使用2-3句話。]
 
 ---
 
-Example output format:
+輸出格式示例：
 # ACME | $123.45 | 🔺 1.92%
     
-<b>Company Overview</b>
-ACME Corp is a leading player in the tech sector, specializing in AI-driven solutions. The company has recently expanded its product line and secured several high-profile contracts, positioning itself for robust growth in the coming quarters.
+<b>公司概覽</b>
+ACME公司是科技行業的領先企業，專注於AI驅動的解決方案。該公司最近擴展了產品線並獲得了幾個高知名度的合約，為未來幾個季度的強勁增長奠定了基礎。
 
-<b>Key Signals</b>
-✅ Strong profit margin (23.4%) outperforming sector average by 7.2%
-✅ Recent price momentum with 5.2% gain over 7 days
-✅ Analyst consensus is 'buy' with target price 15% above current levels
-❎ High debt-to-equity ratio (1.8) indicates significant leverage
-❎ Forward P/E of 25.3 suggests premium valuation compared to peers
+<b>關鍵訊號</b>
+✅ 強勁的利潤率(23.4%)，超過行業平均水平7.2%
+✅ 最近7天價格勢頭強勁，漲幅達5.2%
+✅ 分析師一致給予「買入」評級，目標價格高於當前水平15%
+❎ 高負債權益比(1.8)表明顯著槓桿
+❎ 預期市盈率25.3，相比同行估值偏高
 
-<b>Market Insights</b>
-[Paragraph 1]
-[Paragraph 2]
-[Paragraph 3]
-
-<b>Recommendation: Buy 🟢</b>
+<b>市場洞察</b>
+[]
+[]
 []
 
-<b>Risk Level: Medium 🟠</b>
+<b>建議：買入 🟢</b>
 []
 
-Keep your response concise and focused on the most important insights. If certain data points are missing, acknowledge the limitations of your analysis.
+<b>風險級別：中等 🟠</b>
+[]
+
+請保持回應簡潔，專注於最重要的見解。如果某些數據點缺失，請確認分析的局限性。
         '''
         return prompt

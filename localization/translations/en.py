@@ -1,3 +1,0 @@
-TRANSLATIONS = {
-    "loading": "Analyzing {ticker} ..."
-}

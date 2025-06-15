@@ -14,16 +14,16 @@ class Validation:
         '''
         # Check if ticker is empty
         if not ticker or ticker.strip() == '':
-            return False, 'Ticker symbol cannot be empty'
+            return False, '股票代碼不能為空'
             
         # Check ticker length
         if len(ticker) > 10:
-            return False, 'Ticker symbol is too long (max 10 characters)'
+            return False, '股票代碼過長（最多 10 個字符）'
             
         # Check for valid characters (letters, numbers, some special characters)
         if not re.match(r'^[A-Za-z0-9\.\-]+$', ticker):
-            return False, 'Ticker contains invalid characters'
-            
+            return False, '股票代碼包含無效字符'
+
         return True, ''
     
     @staticmethod

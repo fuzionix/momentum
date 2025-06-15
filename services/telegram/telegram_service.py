@@ -6,7 +6,6 @@ from utils.validation import Validation
 from services.database.db_service import DatabaseService
 from services.data.yahoo_service import YahooFinanceService
 from services.llm.replicate_service import ReplicateService
-from localization.translator import Translator
 
 class TelegramService:
     def __init__(self, token: str, db_service: DatabaseService):
@@ -15,12 +14,11 @@ class TelegramService:
         self.replicate_service = ReplicateService()
         self.validation = Validation()
         self.db_service = db_service
-        self.translator = Translator
 
     async def setup_chat_menu(self):        
         commands = [
-            BotCommand('analyze', 'Analyze a stock'),
-            BotCommand('credits', 'Check remaining credits'),
+            BotCommand('analyze', '分析股票'),
+            BotCommand('credits', '查看剩餘點數'),
         ]
         
         await self.application.bot.set_my_commands(commands)
@@ -53,14 +51,14 @@ class TelegramService:
 
         elif query.data == 'about_bot':
             about_text = (
-                'Momentum Financial Bot\n\n'
-                'This is an experimental project developed by HKBU student - Taylon Chan.\n\n'
-                'Momentum provides professional financial insights powered by latest reasoning model.\n\n'
-                'Features:\n'
-                '• Real-time data\n'
-                '• Technical analysis indicators\n'
-                '• AI-generated insights and recommendations\n'
-                '• Risk assessments and key metrics\n\n'
+                'Momentum 財務洞察機器人\n\n'
+                '該系統為香港浸會大學學生開發的實驗項目。\n\n'
+                'Momentum 提供由最新推理模型驅動的專業財務洞察。\n\n'
+                '功能：\n'
+                '．即時數據\n'
+                '．技術分析指標\n'
+                '．推理模型生成的見解和建議\n'
+                '．風險評估和關鍵指標\n\n'
                 '<a href="https://github.com/fuzionix/momentum">GitHub</a>'
             )
             
@@ -78,19 +76,19 @@ class TelegramService:
     async def render_home_page(self, message):
         keyboard = [
             [
-                InlineKeyboardButton('Analyze Stock', callback_data='analyze_stock'), 
-                InlineKeyboardButton('Check Credits', callback_data='check_credits'),
+                InlineKeyboardButton('分析股票', callback_data='analyze_stock'), 
+                InlineKeyboardButton('查看點數', callback_data='check_credits'),
             ],
             [
-                InlineKeyboardButton('How To Use', callback_data='tutorial'),
+                InlineKeyboardButton('使用指南', callback_data='tutorial'),
             ],
             [
-                InlineKeyboardButton('About Momentum', callback_data='about_bot')
+                InlineKeyboardButton('關於 Momentum', callback_data='about_bot')
             ]
         ]
         reply_markup = InlineKeyboardMarkup(keyboard)
         await message.reply_text(
-            text='Momentum deliver comprehensive financial analysis powered by AI reasoning model.',
+            text='Momentum 提供由 AI 推理模型驅動的全面財務分析。',
             reply_markup=reply_markup
         )
 
@@ -103,7 +101,7 @@ class TelegramService:
         minutes = int((time_until_reset.total_seconds() % 3600) // 60)
 
         await message.reply_text(
-            text=f"⚠️ You're out of credits! \n\nCredits will renew in approximately {hours}h {minutes}m.",
+            text=f"⚠️ 您的點數已用完！ \n\n點數將在大約 {hours}小時 {minutes}分鐘後更新。",
             parse_mode="HTML",
         )
             
@@ -136,7 +134,7 @@ class TelegramService:
         is_valid, error_message = self.validation.validate_ticker(ticker_symbol)
         if not is_valid:
             message = self.validation.format_telegram_message(
-                f'{error_message}. Please try again with a valid symbol.'
+                f'{error_message}。請使用有效的股票代碼重試。'
             )
             await update.message.reply_text(
                 text=message,
@@ -149,7 +147,7 @@ class TelegramService:
             return
 
         message = self.validation.format_telegram_message(
-            f'Analyzing {ticker_symbol} ...'
+            f'正在分析 {ticker_symbol} ...'
         )
         loading_message = await update.message.reply_text(
             text=message,
@@ -159,7 +157,7 @@ class TelegramService:
         stock_data = self.yahoo_service.get_stock_data(ticker_symbol)
         if 'error' in stock_data:
             await loading_message.delete()
-            error_msg = f"❌ Error retrieving stock data. Please try again with a valid ticker symbol."
+            error_msg = f"❌ 獲取股票數據時出錯。請使用有效的股票代碼重試。"
             context.user_data['awaiting_ticker'] = {
                 'mode': 'analyze_stock'
             }
@@ -184,7 +182,7 @@ class TelegramService:
         await loading_message.delete()
 
         keyboard = [
-            [InlineKeyboardButton('Home Page', callback_data='go_home')],
+            [InlineKeyboardButton('返回首頁', callback_data='go_home')],
         ]
         reply_markup = InlineKeyboardMarkup(keyboard)
 
@@ -214,17 +212,17 @@ class TelegramService:
         
         credit_emoji = "🟢" if credits >= 3 else "🟡" if credits > 0 else "🔴"
         credit_text = (
-            f"<b>Your Credits: {credits} {credit_emoji}</b>\n\n"
-            f"• Each analysis costs 1 credit\n"
-            f"• Credits renew to at least 3 every 24 hours\n"
-            f"• Next reset in approximately {hours}h {minutes}m\n\n"
+            f"<b>您的點數：{credits} {credit_emoji}</b>\n\n"
+            f"．每次分析消耗 1 點點數\n"
+            f"．點數每 24 小時更新回 3 點數\n"
+            f"．下次更新約在 {hours} 小時 {minutes} 分鐘後\n\n"
         )
         
         if credits <= 0:
-            credit_text += "⚠️ You're out of credits! Please wait for renewal."
+            credit_text += "⚠️ 您的點數已用完！請等待更新。"
         elif credits == 1:
-            credit_text += "⚠️ You have just 1 credit left! Use it wisely."
-        
+            credit_text += "⚠️ 您只剩下 1 點點數！請謹慎使用。"
+
         await message.reply_text(
             text=credit_text,
             parse_mode="HTML",
@@ -248,7 +246,7 @@ class TelegramService:
             'mode': 'analyze_stock'
         }
         await message.reply_text(
-            text='Please enter the stock ticker symbol. E.g. NVDA',
+            text='請輸入股票代碼。例如：NVDA',
         )
 
     def setup(self):

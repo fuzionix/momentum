@@ -11,7 +11,7 @@ class ReplicateService:
     def get_financial_insight(self, stock_data: Dict) -> Tuple[str, str]:
         try:
             if 'error' in stock_data:
-                return f'Error retrieving stock data: {stock_data["error"]}'
+                return f'獲取股票數據時出錯： {stock_data["error"]}'
                                 
             # Build prompt with stock data
             prompt = StockAnalysisPrompt.build_prompt(stock_data)
@@ -20,7 +20,7 @@ class ReplicateService:
                 'meta/llama-4-maverick-instruct',
                 input={
                     'prompt': prompt,
-                    'max_tokens': 4096,
+                    'max_tokens': 8192,
                     'top_p': 0.9,
                     'temperature': 0.75,
                 }
@@ -29,8 +29,8 @@ class ReplicateService:
             prediction.wait()
 
             if prediction.status == 'failed':
-                return f'Error generating insight: {prediction.error}', 'error_id'
-            
+                return f'生成分析時出錯： {prediction.error}', 'error_id'
+
             prediction_id = prediction.id
             output = prediction.output
 
@@ -48,7 +48,7 @@ class ReplicateService:
 
             return sanitized_output, prediction_id
         except Exception as e:
-            return f'Error generating insight: {str(e)}', 'error_id'
+            return f'生成分析時發生錯誤： {str(e)}', 'error_id'
     
     def remove_think_blocks(self, text: str) -> str:
         '''Remove content between <think> and </think> tags'''
