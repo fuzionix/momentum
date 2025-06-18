@@ -2,46 +2,48 @@ import re
 from typing import Tuple
 
 class Validation:
-    # Characters that need to be escaped in MarkdownV2 format
-    SPECIAL_CHARS = ['_', '*', '[', ']', '(', ')', '~', '`', '>', '#', '+', 
-                     '-', '=', '|', '{', '}', '.', '!']
-    
-    @staticmethod
-    def validate_ticker(ticker: str) -> Tuple[bool, str]:
-        '''
-        Validate ticker symbol.
+    def validate_ticker(self, ticker: str) -> tuple[bool, str]:
+        """
+        Validate ticker symbol format
         Returns (is_valid, error_message)
-        '''
-        # Check if ticker is empty
-        if not ticker or ticker.strip() == '':
-            return False, '股票代碼不能為空'
+        """
+        if not ticker or len(ticker) == 0:
+            return False, "股票代碼不能為空"
+        
+        ticker = ticker.strip()
+        if len(ticker) > 20:
+            return False, "股票代碼太長"
             
-        # Check ticker length
-        if len(ticker) > 10:
-            return False, '股票代碼過長（最多 10 個字符）'
+        return True, ""
+    
+    def format_ticker(self, ticker: str) -> str:
+        """
+        Format ticker according to exchange rules:
+        - Digit-only tickers are assumed to be Hong Kong stocks
+        - Already formatted tickers (with a dot) are left as is
+        - Letter-only tickers are assumed to be US stocks
+        """
+        ticker = ticker.strip().upper()
+        
+        # If ticker already contains a dot (like "0700.HK"), leave it as is
+        if '.' in ticker:
+            return ticker
             
-        # Check for valid characters (letters, numbers, some special characters)
-        if not re.match(r'^[A-Za-z0-9\.\-]+$', ticker):
-            return False, '股票代碼包含無效字符'
-
-        return True, ''
-    
-    @staticmethod
-    def escape_markdown(text: str) -> str:
-        '''
-        Escape special characters for MarkdownV2 format in Telegram
-        '''
-        escaped_text = text
-        for char in Validation.SPECIAL_CHARS:
-            escaped_text = escaped_text.replace(char, f'\\{char}')
-        return escaped_text
-    
-    @staticmethod
-    def format_telegram_message(message: str, parse_mode: str = 'MarkdownV2') -> str:
-        '''
-        Format message for Telegram based on parse mode
-        '''
-        if parse_mode.lower() == 'markdownv2':
-            return Validation.escape_markdown(message)
-        # For HTML or other modes, no escaping needed
+        # If ticker is digit-only, assume it's a Hong Kong stock
+        if ticker.isdigit():
+            # Pad with leading zeros to 4 digits for HK stocks
+            padded_ticker = ticker.zfill(4)
+            return f"{padded_ticker}.HK"
+            
+        # Otherwise assume it's a US stock (return as is)
+        return ticker
+        
+    def format_telegram_message(self, message: str) -> str:
+        """
+        Format message for Telegram's MarkdownV2 format
+        Escapes special characters
+        """
+        escape_chars = ['_', '*', '[', ']', '(', ')', '~', '`', '>', '#', '+', '-', '=', '|', '{', '}', '.', '!']
+        for char in escape_chars:
+            message = message.replace(char, f'\\{char}')
         return message

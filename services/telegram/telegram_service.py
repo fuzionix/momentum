@@ -127,9 +127,7 @@ class TelegramService:
             return
         
     async def process_ticker(self, update: Update, context: ContextTypes.DEFAULT_TYPE, ticker_symbol: str, db_user: Dict):
-        '''Process ticker symbol (extracted for reuse)'''
-        ticker_symbol = ticker_symbol.upper()
-        
+        '''Process ticker symbol for different exchanges'''
         # Validate ticker symbol
         is_valid, error_message = self.validation.validate_ticker(ticker_symbol)
         if not is_valid:
@@ -146,15 +144,18 @@ class TelegramService:
             }
             return
 
+        # Format ticker based on its characteristics
+        formatted_ticker = self.validation.format_ticker(ticker_symbol)
+        
         message = self.validation.format_telegram_message(
-            f'正在分析 {ticker_symbol} ...'
+            f'正在分析 {formatted_ticker} ...'
         )
         loading_message = await update.message.reply_text(
             text=message,
             parse_mode='MarkdownV2'
         )
 
-        stock_data = self.yahoo_service.get_stock_data(ticker_symbol)
+        stock_data = self.yahoo_service.get_stock_data(formatted_ticker)
         if 'error' in stock_data:
             await loading_message.delete()
             error_msg = f"❌ 獲取股票數據時出錯。請使用有效的股票代碼重試。"
@@ -175,7 +176,7 @@ class TelegramService:
 
         self.db_service.log_analysis(
             user_id=db_user['id'],
-            ticker_symbol=ticker_symbol,
+            ticker_symbol=formatted_ticker,
             replicate_id=replicate_id
         )
 
@@ -246,7 +247,7 @@ class TelegramService:
             'mode': 'analyze_stock'
         }
         await message.reply_text(
-            text='請輸入股票代碼。例如：NVDA',
+            text='請輸入股票代碼。例如：NVDA, 0700',
         )
 
     def setup(self):
