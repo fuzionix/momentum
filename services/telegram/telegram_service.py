@@ -6,6 +6,7 @@ from utils.validation import Validation
 from services.database.db_service import DatabaseService
 from services.data.yahoo_service import YahooFinanceService
 from services.llm.replicate_service import ReplicateService
+from services.data.news_service import NewsService
 
 class TelegramService:
     def __init__(self, token: str, db_service: DatabaseService):
@@ -14,11 +15,13 @@ class TelegramService:
         self.replicate_service = ReplicateService()
         self.validation = Validation()
         self.db_service = db_service
+        self.news_service = NewsService()
 
     async def setup_chat_menu(self):        
         commands = [
             BotCommand('analyze', '分析股票'),
             BotCommand('credits', '查看剩餘點數'),
+            BotCommand('news', '環球新聞分析'),
         ]
         
         await self.application.bot.set_my_commands(commands)
@@ -58,7 +61,8 @@ class TelegramService:
                 '．即時數據\n'
                 '．技術分析指標\n'
                 '．推理模型生成的見解和建議\n'
-                '．風險評估和關鍵指標\n\n'
+                '．風險評估和關鍵指標\n'
+                '．新聞摘要與分析\n\n'
                 '<a href="https://github.com/fuzionix/momentum">GitHub</a>'
             )
             
@@ -73,13 +77,17 @@ class TelegramService:
         elif query.data == "check_credits":
             await self.check_credits(update)
 
+        elif query.data == "get_news":
+            await self.get_financial_news(update)
+
     async def render_home_page(self, message):
         keyboard = [
             [
                 InlineKeyboardButton('分析股票', callback_data='analyze_stock'), 
-                InlineKeyboardButton('查看點數', callback_data='check_credits'),
+                InlineKeyboardButton('環球新聞分析', callback_data='get_news'),
             ],
             [
+                InlineKeyboardButton('查看點數', callback_data='check_credits'),
                 InlineKeyboardButton('使用指南', callback_data='tutorial'),
             ],
             [
@@ -250,10 +258,62 @@ class TelegramService:
             text='請輸入股票代碼。例如：NVDA, 0700',
         )
 
+    async def news_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        await self.get_financial_news(update)
+
+    async def get_financial_news(self, update: Update):
+        """Fetch and summarize financial news"""
+        user = update.effective_user
+        telegram_id = user.id
+
+        message = update.message
+        if message is None and update.callback_query:
+            message = update.callback_query.message
+
+        credits = self.db_service.get_user_credits(telegram_id)
+        if credits <= 0:
+            await self.render_out_of_credits(message, telegram_id)
+            return
+
+        loading_message = await message.reply_text(
+            text='正在獲取最新新聞摘要 ...',
+        )
+
+        news_articles = self.news_service.get_highlighted_news(limit=5)
+        db_user = self.db_service.get_or_create_user(
+            telegram_id=user.id,
+            username=user.username,
+            first_name=user.first_name,
+            last_name=user.last_name,
+            language=user.language_code
+        )
+        
+        success, credits_left = self.db_service.use_credit(db_user.get('telegram_id'))
+        if not success:
+            await loading_message.delete()
+            await self.render_out_of_credits(message, db_user.get('telegram_id'))
+            return
+
+        summary, replicate_id = self.replicate_service.summarize_news(news_articles)
+
+        await loading_message.delete()
+
+        keyboard = [
+            [InlineKeyboardButton('返回首頁', callback_data='go_home')],
+        ]
+        reply_markup = InlineKeyboardMarkup(keyboard)
+
+        await message.reply_text(
+            text=summary,
+            parse_mode='HTML',
+            reply_markup=reply_markup
+        )
+
     def setup(self):
         self.application.add_handler(CommandHandler('start', self.start_command))
         self.application.add_handler(CommandHandler('analyze', self.analyze_command))
         self.application.add_handler(CommandHandler('credits', self.credits_command))
+        self.application.add_handler(CommandHandler('news', self.news_command))
         
         self.application.add_handler(CallbackQueryHandler(self.button_callback))
         self.application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, self.message_handler))

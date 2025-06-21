@@ -48,8 +48,53 @@ class ReplicateService:
 
             return sanitized_output, prediction_id
         except Exception as e:
-            return f'生成分析時發生錯誤： {str(e)}', 'error_id'
-    
+            return f'Error occur when generating financial insight: {str(e)}', 'error_id'
+        
+    def summarize_news(self, news_articles):
+        try:
+            if not news_articles or len(news_articles) == 0:
+                return "無法獲取最新環球新聞，請稍後再試。", "error_id"
+                                    
+            # Build prompt with news articles
+            from services.llm.prompts.prompt_news_summary import NewsSummaryPrompt
+            prompt = NewsSummaryPrompt.build_prompt(news_articles)
+
+            print(f"Generated prompt for news summarization: {prompt}")  # Debugging output
+
+            prediction = self.client.predictions.create(
+                'meta/llama-4-maverick-instruct',
+                input={
+                    'prompt': prompt,
+                    'max_tokens': 8192,
+                    'top_p': 0.9,
+                    'temperature': 0.75,
+                }
+            )
+
+            prediction.wait()
+
+            if prediction.status == 'failed':
+                return f'生成新聞摘要時出錯： {prediction.error}', 'error_id'
+
+            prediction_id = prediction.id
+            output = prediction.output
+
+            # For streaming output, combine all output
+            if isinstance(output, list):
+                full_output = ''.join(output)
+            else:
+                full_output = str(output)
+
+            # Remove <think> blocks
+            cleaned_output = self.remove_think_blocks(full_output)
+
+            # Sanitize for Telegram HTML parsing
+            sanitized_output = self.sanitize_telegram_html(cleaned_output)
+
+            return sanitized_output, prediction_id
+        except Exception as e:
+            return f'Error occur when generating news summary: {str(e)}', 'error_id'
+
     def remove_think_blocks(self, text: str) -> str:
         '''Remove content between <think> and </think> tags'''
         pattern = r'<think>.*?</think>'
